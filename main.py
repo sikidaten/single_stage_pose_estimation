@@ -1,4 +1,5 @@
 import torch
+import argparse
 import torch.nn.functional as F
 from model.softgatedskipconnection import SoftGatedSkipConnection as Model
 from utils.dataset import COCODataset
@@ -27,18 +28,24 @@ def operate(phase):
             loss.backward()
             optmizer.step()
             optmizer.zero_grad()
-            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss:.2f}, {phase}')
+            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss*100:.2f} (x100), {phase}')
             addvalue(writer,f'loss:{phase}',loss.item(),e)
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--batchsize',type=int,default=2)
+    parser.add_argument('--epochs',type=int,default=100)
+    parser.add_argument('--size',type=int,default=256)
+    parser.add_argument('--stack',default=4,type=int)
+    args=parser.parse_args()
     device='cuda' if torch.cuda.is_available() else 'cpu'
-    model=Model(4,256,3,12).to(device)
-    batchsize=2
+    model=Model(args.stack,args.size,3,12).to(device)
+    batchsize=args.batchsize
     optmizer=torch.optim.Adam(model.parameters())
-    size=(128,128)
+    size=(args.size,args.size)
     trainloader=torch.utils.data.DataLoader(COCODataset('../data/coco/train2017','../data/coco/person_keypoints_train2017.json',size),batch_size=batchsize,shuffle=True)
     valloader=torch.utils.data.DataLoader(COCODataset('../data/coco/val2017','../data/coco/person_keypoints_val2017.json',size),batch_size=batchsize,shuffle=True)
-    epochs=100
+    epochs=args.epochs
     writer={}
 
 

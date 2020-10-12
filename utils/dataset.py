@@ -22,6 +22,7 @@ class COCODataset(torch.utils.data.Dataset):
         ann_ids=self.coco.getAnnIds(self.img_ids[idx],self.cat_ids)
         annos=self.coco.loadAnns(ann_ids)
         img,centermap,center_mask,kps_offset,kps_weight=singlestagelabel(img_info,self.root,annos,self.size,self.scale,self.num_joints)
+        if img.mode!='RGB':img=img.convert('RGB')
         return self.transformer(img), centermap, center_mask, kps_offset, kps_weight
 if __name__=='__main__':
     dataset=COCODataset('../data/coco/train2017','../data/coco/person_keypoints_train2017.json',(128,128))
