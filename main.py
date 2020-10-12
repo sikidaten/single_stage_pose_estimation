@@ -25,9 +25,10 @@ def operate(phase):
                 center_loss = F.mse_loss(center_map * center_mask, outcenter * center_mask)
                 center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, outkps * kps_weight)
                 loss=loss+center_loss+center_offset_loss
-            loss.backward()
-            optmizer.step()
-            optmizer.zero_grad()
+            if phase=='train':
+                loss.backward()
+                optmizer.step()
+                optmizer.zero_grad()
             print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss:.6f}, {phase}')
             addvalue(writer,f'loss:{phase}',loss.item(),e)
 
