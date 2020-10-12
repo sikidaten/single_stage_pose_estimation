@@ -28,7 +28,7 @@ def operate(phase):
             loss.backward()
             optmizer.step()
             optmizer.zero_grad()
-            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss*100:.6f}, {phase}')
+            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss:.6f}, {phase}')
             addvalue(writer,f'loss:{phase}',loss.item(),e)
 
 if __name__=='__main__':
