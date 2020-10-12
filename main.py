@@ -9,7 +9,7 @@ def operate(phase):
         model.train()
         loader=trainloader
     else:
-        model.val()
+        model.eval()
         loader=valloader
     with torch.set_grad_enabled(phase=='train'):
         for idx,(img,center_map,center_mask,kps_offset,kps_weight) in enumerate(loader):
