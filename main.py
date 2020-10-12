@@ -45,4 +45,4 @@ if __name__=='__main__':
     for e in range(epochs):
         operate('train')
         operate('val')
-        savedic(writer,'data')
+        save(writer,model,'data')
