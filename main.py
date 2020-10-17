@@ -60,7 +60,7 @@ def operate(phase):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batchsize', type=int, default=32)
+    parser.add_argument('--batchsize', type=int, default=8)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--size', type=int, default=128)
     parser.add_argument('--stack', default=4, type=int)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers',default=cpu_count(),type=int)
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
-    os.makedirs(f'savefolder', exist_ok=True)
+    os.makedirs(f'{savefolder}', exist_ok=True)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = Model(args.stack, args.size, 3, 12).to(device)
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
