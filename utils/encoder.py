@@ -109,18 +109,21 @@ def encoder(img_info, root, annos, size, scale, num_joints,do_data_aug=False):
             mask[y0:y1, x0:x1] = 1
             return heatmap, mask
         return heatmap
-
+    bboxes=[]
+    kpses=[]
     for ann in annos:
         bbox = [ann['bbox'][0], ann['bbox'][1], ann['bbox'][0] + ann['bbox'][2], ann['bbox'][1] + ann['bbox'][3]]
         bbox = [bbox[0] / scale_x, bbox[1] / scale_y, bbox[2] / scale_x, bbox[3] / scale_y]
         kps=ann['keypoints']
-        if do_data_aug:
-            img,_,kps=data_aug(img=img,keypoints=[kps])
-            kps=kps[0]
         assert len(kps)==17*3
         for i in range(17):
             kps[3*i+0]/=scale_x
             kps[3*i+1]/=scale_y
+        bboxes+=[bbox]
+        kpses+=[kps]
+    if do_data_aug:
+        img,bboxes,kpses=data_aug(img,bboxes,kpses)
+    for bbox ,kps in zip(bboxes,kpses):
         create_spm_label(bbox,kps,centermap)
     kps_count[kps_count==0]+=1
     kps_offset=kps_offset/kps_count

@@ -17,6 +17,7 @@ from imgaug import augmenters as iaa
 from imgaug import parameters as iap
 from PIL import Image
 
+
 def data_aug(img, bboxs=None, keypoints=None):
     '''
     :param img: 需要进行数据增强的图像
@@ -24,14 +25,18 @@ def data_aug(img, bboxs=None, keypoints=None):
     :param keypoints: 关键点, COCO format or Ai-challenger format, list of list, [ [num_joints x 3], [num_joints x 3], ..., ]
     :return:
     '''
+    _keypoints=keypoints
     img = cv2.cvtColor(np.array(img,dtype=np.uint8), cv2.COLOR_RGB2BGR)
     is_flip = [random.randint(0, 1), random.randint(0, 1)]
     seq = iaa.Sequential([
+        iaa.MotionBlur(),
         iaa.Affine(rotate=(-15, 15), scale=(0.8, 1.2), mode='constant'),
-        iaa.Multiply((0.7, 1.5)),
+        iaa.Multiply(),
         iaa.Grayscale(iap.Choice(a=[0, 1], p=[0.8, 0.2]), from_colorspace='BGR'),
         iaa.Fliplr(is_flip[0]),
         iaa.Flipud(is_flip[1]),
+        iaa.MultiplyAndAddToBrightness(),
+        iaa.ChangeColorTemperature(),
     ])
 
     seq_det = seq.to_deterministic()
@@ -102,26 +107,26 @@ def data_aug(img, bboxs=None, keypoints=None):
         new_keypoints = [list(np.reshape(single_person_keypoints,(-1,))) for single_person_keypoints in new_keypoints]
 
     # test
-    if bbs is not None:
-        img_before = bbs.draw_on_image(img, color=(0, 255, 0), thickness=2)
-        img_after = bbs_aug.draw_on_image(img_aug, color=(0,0,255), thickness=2)
-        cv2.imshow('box ori', img_before)
-        cv2.imshow('box after', img_after)
-        cv2.waitKey(0)
-    if kps is not None:
-        img_before = kps.draw_on_image(img, color=(0, 255, 0), size=5)
-        img_after = kps_aug.draw_on_image(img_aug, color=(0, 0, 255), size=5)
-        for i in range(kps_ori.shape[0]):
-            for joint in range(kps_ori.shape[1]):
-                point = kps_ori[i][joint]
-                cv2.putText(img_before, str(joint), (int(point[0]), int(point[1])), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 250), 1)
-                point = new_keypoints[i][3*joint:3*joint+3]
-                cv2.putText(img_after, str(point[2]), (int(point[0]), int(point[1])), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 250), 1)
-                cv2.putText(img_after, str(joint), (int(point[0]), int(point[1])), cv2.FONT_HERSHEY_COMPLEX, 1,
-                            (0, 0, 250), 1)
-        cv2.imshow('kps ori', img_before)
-        cv2.imshow('kps after', img_after)
-        cv2.waitKey(0)
+    # if bbs is not None:
+    #     img_before = bbs.draw_on_image(img, color=(0, 255, 0), thickness=2)
+    #     img_after = bbs_aug.draw_on_image(img_aug, color=(0,0,255), thickness=2)
+    #     cv2.imshow('box ori', img_before)
+    #     cv2.imshow('box after', img_after)
+    #     cv2.waitKey(0)
+    # if kps is not None:
+    #     img_before = kps.draw_on_image(img, color=(0, 255, 0), size=5)
+    #     img_after = kps_aug.draw_on_image(img_aug, color=(0, 0, 255), size=5)
+    #     for i in range(kps_ori.shape[0]):
+    #         for joint in range(kps_ori.shape[1]):
+    #             point = kps_ori[i][joint]
+    #             cv2.putText(img_before, str(joint), (int(point[0]), int(point[1])), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 250), 1)
+    #             point = new_keypoints[i][3*joint:3*joint+3]
+    #             cv2.putText(img_after, str(point[2]), (int(point[0]), int(point[1])), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 250), 1)
+    #             cv2.putText(img_after, str(joint), (int(point[0]), int(point[1])), cv2.FONT_HERSHEY_COMPLEX, 1,
+    #                         (0, 0, 250), 1)
+    #     cv2.imshow('kps ori', img_before)
+    #     cv2.imshow('kps after', img_after)
+    #     cv2.waitKey(0)
     img_aug = cv2.cvtColor(img_aug, cv2.COLOR_BGR2RGB)
     img_aug=Image.fromarray(img_aug)
     return img_aug, new_bboxs, new_keypoints
