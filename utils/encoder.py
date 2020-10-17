@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
-def singlestagelabel(img_info,root,annos,size,scale,num_joints):
+from utils.augmentation import data_aug
+def encoder(img_info, root, annos, size, scale, num_joints,do_data_aug=False):
     img=Image.open(f'{root}/{img_info["file_name"]}').resize(size)
     tau=7
     sigma=7
@@ -113,6 +114,9 @@ def singlestagelabel(img_info,root,annos,size,scale,num_joints):
         bbox = [ann['bbox'][0], ann['bbox'][1], ann['bbox'][0] + ann['bbox'][2], ann['bbox'][1] + ann['bbox'][3]]
         bbox = [bbox[0] / scale_x, bbox[1] / scale_y, bbox[2] / scale_x, bbox[3] / scale_y]
         kps=ann['keypoints']
+        if do_data_aug:
+            img,_,kps=data_aug(img=img,keypoints=[kps])
+            kps=kps[0]
         assert len(kps)==17*3
         for i in range(17):
             kps[3*i+0]/=scale_x
@@ -122,4 +126,3 @@ def singlestagelabel(img_info,root,annos,size,scale,num_joints):
     kps_offset=kps_offset/kps_count
     center_mask=np.where(centermap>0,1,0)
     return img,centermap,center_mask,kps_offset,kps_weight
-

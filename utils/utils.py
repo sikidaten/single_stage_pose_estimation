@@ -1,4 +1,5 @@
 import numpy as np
+
 def point_nms(inputs, score=0.1, dis=10):
     '''
     NMS function based on point value and point's euclidean distance
@@ -40,3 +41,24 @@ def point_nms(inputs, score=0.1, dis=10):
 
         kept_coors.append(kept_coor)
     return kept_coors
+
+from PIL import ImageDraw,Image
+
+def makeresultimg(img,results,r=5):
+    colors = [(0, 0, 255), (255, 0, 0), (0, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0), (255, 255, 255)]
+    fontcolor = (255, 255, 255)
+    draw=ImageDraw.Draw(img)
+    for j, result in enumerate(results):
+        # print (result)
+        center = result['center']
+        single_person_joints = result['joints']
+        draw.ellipse(((int(center[0]) - r, int(center[1]) - r), (int(center[0]) + r, int(center[1]) + r)),
+                     fill=colors[j % 3])
+        draw.text((center[0], center[1]), 'c', fill=fontcolor)
+        for i in range(12):
+            x = int(single_person_joints[2 * i])
+            y = int(single_person_joints[2 * i + 1])
+            draw.ellipse(((x - r, y - r), (x + r, y + r)), colors[j % 3])
+            draw.text((x, y), str(i), fontcolor)
+    return img
+
