@@ -85,6 +85,6 @@ if __name__ == '__main__':
     writer = {}
 
     for e in range(epochs):
-        operate('train')
+        # operate('train')
         operate('val')
-        save(writer, model, 'data')
+        save(writer, model, savefolder)
