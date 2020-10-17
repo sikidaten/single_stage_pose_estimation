@@ -61,7 +61,7 @@ if __name__=='__main__':
     savefolder=f'data/{args.savefolder}'
     device='cuda' if torch.cuda.is_available() else 'cpu'
     model=Model(args.stack,args.size,3,12).to(device)
-    model.load_state_dict(torch.load('data/tmp/model.pth'))
+    # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize=args.batchsize
     optmizer=torch.optim.Adam(model.parameters())
     size=(args.size,args.size)
