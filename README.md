@@ -5,7 +5,7 @@ The backend model is [Soft-gated Skip Connections](https://arxiv.org/abs/2002.11
 TODO
 - [x] training
 - [x] load MSCOCO keypoint dataset
-- [ ] calculate accuracy(oks)
+- [x] calculate accuracy(oks)
 - [ ] mobile
 - [ ] multi-gpu training
 - [ ] introduce [DarkPose](https://arxiv.org/abs/1910.06278)
