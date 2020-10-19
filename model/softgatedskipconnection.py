@@ -16,10 +16,14 @@ class SoftGatedSkipConnection(nn.Module):
         return ret
 
 if __name__=='__main__':
+    from torchviz import make_dot
     model=SoftGatedSkipConnection(stack=4,feature=256,num_ch=3,num_key=12)
     optim=torch.optim.Adam(model.parameters())
     input=torch.randn(1,3,128,128)
     output=model(input)
+    dot=make_dot(output[0][0],params=dict(model.named_parameters()))
+    dot.format='png'
+    dot.render('graph_image')
     [print(f'{input.shape} -> {output[i][0].shape},{output[i][1].shape}') for i in range(len(output))]
     loss=torch.stack([o[0] for o in output]).mean()
     optim.step()
