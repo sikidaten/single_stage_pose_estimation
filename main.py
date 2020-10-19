@@ -34,7 +34,7 @@ def operate(phase):
             for outcenter, outkps in output:
                 # sigmoid here
                 center_loss = F.mse_loss(center_map * center_mask, torch.sigmoid(outcenter) * center_mask)
-                center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, outkps * kps_weight)
+                center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, torch.tanh(outkps) * kps_weight)
                 loss = loss + center_loss + center_offset_loss
             loss = loss / args.stack
             print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss:.6f}, {phase}')
@@ -76,7 +76,8 @@ if __name__ == '__main__':
     model = Model(args.stack, args.size, in_ch, 12).to(device)
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize = args.batchsize
-    optmizer = torch.optim.Adam(model.parameters())
+    # optmizer = torch.optim.Adam(model.parameters())
+    optmizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
     size = (args.size, args.size)
     trainloader = torch.utils.data.DataLoader(
         COCODataset('../data/coco/train2017', '../data/coco/person_keypoints_train2017.json', size,grey=args.grey,do_aug=args.aug),
