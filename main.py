@@ -44,14 +44,14 @@ def operate(phase):
                 loss.backward()
                 optmizer.step()
                 optmizer.zero_grad()
-            else:
-                for b in range(B):
-                    results = decoder(1, 1, size[0], size[1], output[-1][0][b].detach().cpu(),
-                                      output[-1][1][b].detach().cpu(), 12)
-                    resultslist += [(int(img_id[b]), results)]
-                    if idx == 0:
-                        resultimg = makeresultimg(T.ToPILImage()(img[b].detach().cpu()), results)
-                        resultimg.save(f'{savefolder}/{epochs}_{b}.png')
+
+            for b in range(B):
+                results = decoder(1, 1, size[0], size[1], output[-1][0][b].detach().cpu(),
+                                  output[-1][1][b].detach().cpu(), 12)
+                resultslist += [(int(img_id[b]), results)]
+                if idx == 0:
+                    resultimg = makeresultimg(T.ToPILImage()(img[b].detach().cpu()).convert("RGB"), results)
+                    resultimg.save(f'{savefolder}/{e}_{b}_{phase}.png')
 
     if phase != 'train':
         acc = cocoevaluate(resultslist, size, phase)
@@ -60,31 +60,34 @@ def operate(phase):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batchsize', type=int, default=8)
+    parser.add_argument('--batchsize', type=int, default=2)
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--size', type=int, default=128)
     parser.add_argument('--stack', default=4, type=int)
     parser.add_argument('--savefolder', default='tmp')
     parser.add_argument('--num_workers',default=cpu_count(),type=int)
+    parser.add_argument('--grey',default=False,action='store_true')
+    parser.add_argument('--aug',default=False,action='store_true')
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = Model(args.stack, args.size, 3, 12).to(device)
+    in_ch=3 if not args.grey else 1
+    model = Model(args.stack, args.size, in_ch, 12).to(device)
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize = args.batchsize
     optmizer = torch.optim.Adam(model.parameters())
     size = (args.size, args.size)
     trainloader = torch.utils.data.DataLoader(
-        COCODataset('../data/coco/train2017', '../data/coco/person_keypoints_train2017.json', size),
+        COCODataset('../data/coco/train2017', '../data/coco/person_keypoints_train2017.json', size,grey=args.grey,do_aug=args.aug),
         batch_size=batchsize, shuffle=True,num_workers=args.num_workers)
     valloader = torch.utils.data.DataLoader(
-        COCODataset('../data/coco/val2017', '../data/coco/person_keypoints_val2017.json', size), batch_size=batchsize,
+        COCODataset('../data/coco/val2017', '../data/coco/person_keypoints_val2017.json', size,grey=args.grey,do_aug=args.aug), batch_size=batchsize,
         shuffle=True,num_workers=args.num_workers)
     epochs = args.epochs
     writer = {}
 
     for e in range(epochs):
-        # operate('train')
+        operate('train')
         operate('val')
         save(writer, model, savefolder)

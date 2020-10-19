@@ -5,7 +5,7 @@ from utils.encoder import encoder
 import torchvision.transforms as T
 
 class COCODataset(torch.utils.data.Dataset):
-    def __init__(self,root,json,size,do_aug=False):
+    def __init__(self,root,json,size,do_aug=False,grey=False):
         self.coco=COCO(json)
         self.root=root
         self.size=size
@@ -15,6 +15,7 @@ class COCODataset(torch.utils.data.Dataset):
         self.num_joints=12
         self.transformer=T.Compose([T.ToTensor()])
         self.do_aug=do_aug
+        self.grey=grey
 
     def __len__(self):
         return len(self.img_ids)
@@ -25,6 +26,7 @@ class COCODataset(torch.utils.data.Dataset):
         annos=self.coco.loadAnns(ann_ids)
         img,centermap,center_mask,kps_offset,kps_weight=encoder(img_info, self.root, annos, self.size, self.scale, self.num_joints,self.do_aug)
         if img.mode!='RGB':img=img.convert('RGB')
+        if self.grey:img=img.convert('L')
         # plt.imshow(img)
         # plt.axis('off')
         # self.coco.showAnns(annos)

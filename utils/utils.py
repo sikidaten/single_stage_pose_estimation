@@ -44,7 +44,7 @@ def point_nms(inputs, score=0.1, dis=10):
 
 from PIL import ImageDraw,Image
 
-def makeresultimg(img,results,r=5):
+def makeresultimg(img,results,r=2):
     colors = [(0, 0, 255), (255, 0, 0), (0, 255, 0), (0, 255, 255), (255, 0, 255), (255, 255, 0), (255, 255, 255)]
     fontcolor = (255, 255, 255)
     draw=ImageDraw.Draw(img)
