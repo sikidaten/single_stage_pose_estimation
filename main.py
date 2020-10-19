@@ -30,15 +30,19 @@ def operate(phase):
             kps_weight = kps_weight.to(device)
 
             output = model(img)
-            loss = 0
+            center_losses=0
+            center_offset_losses=0
             for outcenter, outkps in output:
                 # sigmoid here
                 center_loss = F.mse_loss(center_map * center_mask, torch.sigmoid(outcenter) * center_mask)
                 center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, torch.tanh(outkps) * kps_weight)
-                loss = loss + center_loss + center_offset_loss
-            loss = loss / args.stack
+                center_losses=center_losses+center_loss
+                center_offset_losses=center_offset_losses+center_offset_loss
+            loss = (center_offset_losses+center_losses) / args.stack
             print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss:.6f}, {phase}')
             addvalue(writer, f'loss:{phase}', loss.item(), e)
+            addvalue(writer, f'centerloss:{phase}', center_losses.item(), e)
+            addvalue(writer, f'kpsloss:{phase}', center_offset_losses.item(), e)
 
             if phase == 'train':
                 loss.backward()
