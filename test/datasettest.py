@@ -6,12 +6,12 @@ from PIL import ImageDraw
 from torchvision.transforms import ToPILImage
 import numpy as np
 
-size=(512,512)
-dataset=COCODataset('../data/coco/train2017','../data/coco/person_keypoints_train2017.json',size)
-img,centermap,center_mask,kps_offset,kps_weight,img_id=dataset[102]
+size=(384,384)
+dataset=COCODataset('../data/coco/train2017','../data/coco/person_keypoints_train2017.json',size,7)
+img,centermap,center_mask,kps_offset,kps_weight,img_id=dataset[0]
 img=ToPILImage()(img)
 draw=ImageDraw.Draw(img)
-results=decoder(1,1,size[0],size[1],centermap,kps_offset,12)
+results=decoder(4,4,96,96,centermap,kps_offset,12)
 print(results)
 r=5
 fontcolor=(255,255,255)

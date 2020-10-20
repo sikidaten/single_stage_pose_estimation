@@ -5,17 +5,21 @@ from utils.encoder import encoder
 import torchvision.transforms as T
 
 class COCODataset(torch.utils.data.Dataset):
-    def __init__(self,root,json,size,do_aug=False,grey=False):
+    def __init__(self,root,json,size,tau,do_aug=False,grey=False):
         self.coco=COCO(json)
         self.root=root
         self.size=size
         self.cat_ids=self.coco.getCatIds(['person'])
         self.img_ids=self.coco.getImgIds(catIds=self.cat_ids)
-        self.scale=1
+        self.scale=4
         self.num_joints=12
-        self.transformer=T.Compose([T.ToTensor()])
+        p_norm=([0.5,0.5,0.5],[1,1,1])  if not grey else ([0],[1])
+        self.transformer=T.Compose([T.ToTensor(),T.Normalize(*p_norm)])
+        #FOR TEST
+        # self.transformer=T.Compose([T.ToTensor()])
         self.do_aug=do_aug
         self.grey=grey
+        self.tau=tau
 
     def __len__(self):
         return len(self.img_ids)
@@ -24,7 +28,7 @@ class COCODataset(torch.utils.data.Dataset):
         img_info=self.coco.loadImgs(self.img_ids[idx])[0]
         ann_ids=self.coco.getAnnIds(self.img_ids[idx],self.cat_ids)
         annos=self.coco.loadAnns(ann_ids)
-        img,centermap,center_mask,kps_offset,kps_weight=encoder(img_info, self.root, annos, self.size, self.scale, self.num_joints,self.do_aug)
+        img,centermap,center_mask,kps_offset,kps_weight=encoder(img_info, self.root, annos, self.size, self.scale, self.num_joints,self.do_aug,self.tau)
         if img.mode!='RGB':img=img.convert('RGB')
         if self.grey:img=img.convert('L')
         # plt.imshow(img)

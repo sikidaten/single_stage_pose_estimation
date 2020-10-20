@@ -1,10 +1,8 @@
 from PIL import Image
 import numpy as np
 from utils.augmentation import data_aug
-def encoder(img_info, root, annos, size, scale, num_joints,do_data_aug=False):
+def encoder(img_info, root, annos, size, scale, num_joints,do_data_aug=False,tau=7,sigma=7):
     img=Image.open(f'{root}/{img_info["file_name"]}').resize(size)
-    tau=7
-    sigma=7
     kpslevel=[[6,8,10],[5,7,9],[12,14,16],[11,13,15]]
 
     oriw=img_info['width']

@@ -29,14 +29,14 @@ def data_aug(img, bboxs=None, keypoints=None):
     img = cv2.cvtColor(np.array(img,dtype=np.uint8), cv2.COLOR_RGB2BGR)
     is_flip = [random.randint(0, 1), random.randint(0, 1)]
     seq = iaa.Sequential([
-        iaa.MotionBlur(),
-        iaa.Affine(rotate=(-15, 15), scale=(0.8, 1.2), mode='constant'),
+        # iaa.MotionBlur(k=(0,5)),
         iaa.Multiply(),
-        iaa.Grayscale(iap.Choice(a=[0, 1], p=[0.8, 0.2]), from_colorspace='BGR'),
+        # iaa.Grayscale(iap.Choice(a=[0, 1], p=[0.8, 0.2]), from_colorspace='BGR'),
         iaa.Fliplr(is_flip[0]),
         iaa.Flipud(is_flip[1]),
-        iaa.MultiplyAndAddToBrightness(),
-        iaa.ChangeColorTemperature(),
+        iaa.Affine(rotate=(-40, 40), scale=(0.5, 1.5), mode='constant'),
+        # iaa.MultiplyAndAddToBrightness(),
+        # iaa.ChangeColorTemperature(),
     ])
 
     seq_det = seq.to_deterministic()

@@ -1,18 +1,23 @@
 import torch
 import torch.nn as nn
 from model.net.base import Base
+from model.net.convbnrelu import ConvBNRelu
+from model.net.gatedresidualblock import GatedResidualBlock
 class SoftGatedSkipConnection(nn.Module):
     def __init__(self,stack,feature,num_ch,num_key):
         super(SoftGatedSkipConnection, self).__init__()
         self.out_ch= 2 * num_key + 1
         self.stack=stack
-        self.bases=nn.ModuleList([Base(depth=4, feature=feature, num_ch=num_ch if i==0 else self.out_ch, num_key=self.out_ch) for i in range(stack)])
-
+        self.prelayer=nn.Sequential(ConvBNRelu(num_ch,feature,7,2,3),nn.MaxPool2d(2),GatedResidualBlock(feature))
+        self.bases=nn.ModuleList([Base(depth=4, feature=feature) for i in range(stack)])
+        self.out=nn.ModuleList([nn.Conv2d(feature,num_key*2+1,1) for _ in range(stack)])
     def forward(self,x):
+        x=self.prelayer(x)
         ret=[]
         for s in range(self.stack):
             x=self.bases[s](x)
-            ret+=[torch.split(x, [1, self.out_ch - 1], 1)]
+            out=self.out[s](x)
+            ret+=[torch.split(out, [1, self.out_ch - 1], 1)]
         return ret
 
 if __name__=='__main__':
