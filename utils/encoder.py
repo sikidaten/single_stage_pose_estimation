@@ -35,7 +35,7 @@ def encoder(img_info, root, annos, size, scale, num_joints,do_data_aug=False,tau
         try:
             centermap[0,...] = draw_ttfnet_gaussian(centermap[0,...], centers, center_sigmax, center_sigmay)
         except:
-            print(f'ERROR:{centers=},{center_sigmax=},{center_sigmay}')
+            print(f'ERROR:{centers=},{center_sigmax=},{center_sigmay=}')
         body_joint_displacement_v2(centers, kps)
 
     def body_joint_displacement_v2(center, kps):
