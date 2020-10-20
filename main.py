@@ -81,7 +81,7 @@ if __name__ == '__main__':
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device='cpu'
+    # device='cpu'
     in_ch=3 if not args.grey else 1
     # model = Model(args.stack, args.features, in_ch, 12).to(device)
     model=Model(num_stacks=8,num_classes=12*2+1).to(device)
