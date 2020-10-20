@@ -123,7 +123,7 @@ def encoder(img_info, root, annos, size, scale, num_joints,do_data_aug=False,tau
         bboxes+=[bbox]
         kpses+=[kps]
     if do_data_aug:
-        img,bboxes,kpses=data_aug(img,bboxes,kpses)
+        img,bboxes,kpses=data_aug(img,bboxes,kpses,scale)
     for bbox ,kps in zip(bboxes,kpses):
         create_spm_label(bbox,kps,centermap)
     kps_count[kps_count==0]+=1

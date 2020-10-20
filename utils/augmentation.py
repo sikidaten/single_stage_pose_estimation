@@ -18,7 +18,7 @@ from imgaug import parameters as iap
 from PIL import Image
 
 
-def data_aug(img, bboxs=None, keypoints=None):
+def data_aug(img, bboxs=None, keypoints=None,scale=1):
     '''
     :param img: 需要进行数据增强的图像
     :param bboxs: list, [ [x1, y1, x2, y2], ..., [xn1, yn1, xn2, yn2] ]
@@ -29,16 +29,16 @@ def data_aug(img, bboxs=None, keypoints=None):
     img = cv2.cvtColor(np.array(img,dtype=np.uint8), cv2.COLOR_RGB2BGR)
     is_flip = [random.randint(0, 1), random.randint(0, 1)]
     seq = iaa.Sequential([
-        # iaa.MotionBlur(k=(0,5)),
-        iaa.Multiply(),
-        # iaa.Grayscale(iap.Choice(a=[0, 1], p=[0.8, 0.2]), from_colorspace='BGR'),
-        iaa.Fliplr(is_flip[0]),
-        iaa.Flipud(is_flip[1]),
-        iaa.Affine(rotate=(-40, 40), scale=(0.5, 1.5), mode='constant'),
-        # iaa.MultiplyAndAddToBrightness(),
-        # iaa.ChangeColorTemperature(),
+        # iaa.Affine(rotate=(-15, 15), scale=(0.8, 1.2), mode='constant'),
+        iaa.Multiply((0.7, 1.5)),
+        iaa.Grayscale(iap.Choice(a=[0, 1], p=[0.8, 0.2]), from_colorspace='BGR'),
+        # iaa.Fliplr(is_flip[0]),
+        # iaa.Flipud(is_flip[1]),
     ])
-
+    H,W,C=img.shape
+    H/=scale
+    W/=scale
+    outshape=(H,W,C)
     seq_det = seq.to_deterministic()
     bbs = None
     kps = None
@@ -52,13 +52,13 @@ def data_aug(img, bboxs=None, keypoints=None):
 
     if bboxs is not None:
         assert type(bboxs) == type([])
-        bbs = ia.BoundingBoxesOnImage([], shape=img.shape)
+        bbs = ia.BoundingBoxesOnImage([], shape=outshape)
         for box in bboxs:
             bbs.bounding_boxes.append(ia.BoundingBox(x1=box[0], y1=box[1], x2=box[2], y2=box[3]))
 
 
     if keypoints is not None:
-        kps = ia.KeypointsOnImage([], shape=img.shape)
+        kps = ia.KeypointsOnImage([], shape=outshape)
         assert type(keypoints) == type([])
         for single_person_keypoints in keypoints:
             for i in range(joint_nums):

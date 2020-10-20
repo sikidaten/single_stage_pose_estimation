@@ -7,8 +7,8 @@ from torchvision.transforms import ToPILImage
 import numpy as np
 
 size=(384,384)
-dataset=COCODataset('../data/coco/train2017','../data/coco/person_keypoints_train2017.json',size,7)
-img,centermap,center_mask,kps_offset,kps_weight,img_id=dataset[0]
+dataset=COCODataset('../data/coco/train2017','../data/coco/person_keypoints_train2017.json',size,7,do_aug=True)
+img,centermap,center_mask,kps_offset,kps_weight,img_id=dataset[3]
 img=ToPILImage()(img)
 draw=ImageDraw.Draw(img)
 results=decoder(4,4,96,96,centermap,kps_offset,12)
