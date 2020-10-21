@@ -36,12 +36,12 @@ def operate(phase):
             center_offset_losses=0
             for outcenter, outkps in output:
                 # sigmoid here
-                center_loss = F.mse_loss(center_map * center_mask, torch.sigmoid(outcenter) * center_mask)
-                center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, torch.tanh(outkps) * kps_weight)
+                center_loss = F.mse_loss(center_map * center_mask, torch.sigmoid(outcenter) * center_mask,reduction='sum')
+                center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, torch.tanh(outkps) * kps_weight,reduction='sum')
                 center_losses=center_losses+center_loss
                 center_offset_losses=center_offset_losses+center_offset_loss
-            loss = (args.beta*center_offset_losses+center_losses) / args.stack
-            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss:.6f}, {phase}')
+            loss = (args.beta*center_offset_losses+center_losses)
+            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss.item()/args.stack:.6f}, {phase}')
             addvalue(writer, f'loss:{phase}', loss.item(), e)
             addvalue(writer, f'centerloss:{phase}', center_losses.item(), e)
             addvalue(writer, f'kpsloss:{phase}', center_offset_losses.item(), e)
@@ -50,7 +50,7 @@ def operate(phase):
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
-                # scheduler.step()
+                if idx==0 and do_schedule:scheduler.step()
 
             for b in range(B):
                 results = decoder(1, 1, size[0], size[1], output[-1][0][b].detach().cpu(),
@@ -78,6 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--aug',default=False,action='store_true')
     parser.add_argument('--beta',default=0.01,type=float)
     parser.add_argument('--tau',default=7,type=int)
+    parser.add_argument('--optim',default='radam')
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
@@ -88,10 +89,15 @@ if __name__ == '__main__':
     # model=Model(num_stacks=8,num_classes=12*2+1).to(device)
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize = args.batchsize
+    do_schedule=False
+    if args.optim=='radam':
+        optimizer=RAdam(model.parameters())
+    elif args.optim=='rmsprop':
+        do_schedule=True
+        optimizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
+        scheduler=torch.optim.lr_scheduler.StepLR(optimizer,step_size=30,gamma=0.5)
+
     # optmizer = torch.optim.Adam(model.parameters())
-    # optmizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
-    optimizer=RAdam(model.parameters())
-    # scheduler=torch.optim.lr_scheduler.StepLR(optmizer,step_size=30,gamma=0.5)
     size = (args.size, args.size)
     trainloader = torch.utils.data.DataLoader(
         COCODataset('../data/coco/train2017', '../data/coco/person_keypoints_train2017.json', size,grey=args.grey,do_aug=args.aug,tau=args.tau),
