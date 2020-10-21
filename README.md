@@ -3,7 +3,7 @@ This is an unofficial implementation of [Single-Stage Multi-Person Pose Machines
 The backend model is [Soft-gated Skip Connections](https://arxiv.org/abs/2002.11098v1)
 
 TODO
-- [x] training
+- [ ] training
 - [x] load MSCOCO keypoint dataset
 - [x] calculate accuracy(oks)
 - [ ] mobile
