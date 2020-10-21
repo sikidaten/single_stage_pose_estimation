@@ -12,6 +12,7 @@ from utils.decoder import decoder
 from utils.eval import cocoevaluate
 from utils.utils import makeresultimg
 from utils.radam import RAdam
+from utils.kfac import KFAC
 
 
 def operate(phase):
@@ -41,7 +42,7 @@ def operate(phase):
                 center_losses=center_losses+center_loss/(B*args.stack)
                 center_offset_losses=center_offset_losses+center_offset_loss/(B*args.stack)
             loss = (args.beta*center_offset_losses+center_losses)
-            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss.item()/args.stack:.6f}, {phase}')
+            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss.item()/args.stack:3.6f}, {phase}')
             addvalue(writer, f'loss:{phase}', loss.item(), e)
             addvalue(writer, f'centerloss:{phase}', center_losses.item(), e)
             addvalue(writer, f'kpsloss:{phase}', center_offset_losses.item(), e)
@@ -49,6 +50,7 @@ def operate(phase):
             if phase == 'train':
                 loss.backward()
                 optimizer.step()
+                if do_preoptim:preoptimizer.step()
                 optimizer.zero_grad()
                 if idx==0 and do_schedule:scheduler.step()
 
@@ -79,6 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('--beta',default=0.01,type=float)
     parser.add_argument('--tau',default=7,type=int)
     parser.add_argument('--optim',default='radam')
+    parser.add_argument('--preoptim',default=None)
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
@@ -90,12 +93,24 @@ if __name__ == '__main__':
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize = args.batchsize
     do_schedule=False
+    do_preoptim=False
     if args.optim=='radam':
         optimizer=RAdam(model.parameters())
     elif args.optim=='rmsprop':
         do_schedule=True
         optimizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
         scheduler=torch.optim.lr_scheduler.StepLR(optimizer,step_size=30,gamma=0.5)
+
+    elif args.optim=='sgd':
+        optimizer=torch.optim.SGD(model.parameters(),1e-3)
+    else:
+        assert False, f'{args.optim} is not allowed. Set correctly.'
+
+    if args.preoptim=='kfac':
+        preoptimizer=KFAC(model,1e-3)
+        do_preoptim=True
+    else:
+        assert False,f'{args.preoptim} is not allowed. Set correctly.'
 
     # optmizer = torch.optim.Adam(model.parameters())
     size = (args.size, args.size)
