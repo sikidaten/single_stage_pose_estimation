@@ -38,8 +38,8 @@ def operate(phase):
                 # sigmoid here
                 center_loss = F.mse_loss(center_map * center_mask, torch.sigmoid(outcenter) * center_mask,reduction='sum')
                 center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, torch.tanh(outkps) * kps_weight,reduction='sum')
-                center_losses=center_losses+center_loss
-                center_offset_losses=center_offset_losses+center_offset_loss
+                center_losses=center_losses+center_loss/(B*args.stack)
+                center_offset_losses=center_offset_losses+center_offset_loss/(B*args.stack)
             loss = (args.beta*center_offset_losses+center_losses)
             print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss.item()/args.stack:.6f}, {phase}')
             addvalue(writer, f'loss:{phase}', loss.item(), e)
