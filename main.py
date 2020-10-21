@@ -11,6 +11,7 @@ from utils.dataset import COCODataset
 from utils.decoder import decoder
 from utils.eval import cocoevaluate
 from utils.utils import makeresultimg
+from utils.radam import RAdam
 
 
 def operate(phase):
@@ -47,9 +48,9 @@ def operate(phase):
 
             if phase == 'train':
                 loss.backward()
-                optmizer.step()
-                optmizer.zero_grad()
-                scheduler.step()
+                optimizer.step()
+                optimizer.zero_grad()
+                # scheduler.step()
 
             for b in range(B):
                 results = decoder(1, 1, size[0], size[1], output[-1][0][b].detach().cpu(),
@@ -88,8 +89,9 @@ if __name__ == '__main__':
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize = args.batchsize
     # optmizer = torch.optim.Adam(model.parameters())
-    optmizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
-    scheduler=torch.optim.lr_scheduler.StepLR(optmizer,step_size=30,gamma=0.5)
+    # optmizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
+    optimizer=RAdam(model.parameters())
+    # scheduler=torch.optim.lr_scheduler.StepLR(optmizer,step_size=30,gamma=0.5)
     size = (args.size, args.size)
     trainloader = torch.utils.data.DataLoader(
         COCODataset('../data/coco/train2017', '../data/coco/person_keypoints_train2017.json', size,grey=args.grey,do_aug=args.aug,tau=args.tau),
