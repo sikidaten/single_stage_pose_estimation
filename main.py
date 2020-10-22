@@ -55,11 +55,14 @@ def operate(phase):
                 if idx==0 and do_schedule:scheduler.step()
 
             for b in range(B):
-                results = decoder(1, 1, size[0], size[1], output[-1][0][b].detach().cpu(),
+                results = decoder(4, 4, size[0]//4, size[1]//4, output[-1][0][b].detach().cpu(),
                                   output[-1][1][b].detach().cpu(), 12)
                 resultslist += [(int(img_id[b]), results)]
                 if idx == 0:
-                    resultimg = makeresultimg(T.ToPILImage()(img[b].detach().cpu()).convert("RGB"), results)
+                    gt_result=decoder(4,4,size[0]//4,size[1]//4,center_map.cpu()[b],kps_offset.cpu()[b],12)
+                    resultimg = makeresultimg(T.ToPILImage()((img[b] + 0.5).detach().cpu()).convert("RGB"), gt_result)
+                    resultimg.save(f'{savefolder}/{e}_{b}_{phase}_gt.png')
+                    resultimg = makeresultimg(T.ToPILImage()((img[b]+0.5).detach().cpu()).convert("RGB"), results)
                     resultimg.save(f'{savefolder}/{e}_{b}_{phase}.png')
 
     if phase != 'train':
@@ -109,8 +112,6 @@ if __name__ == '__main__':
     if args.preoptim=='kfac':
         preoptimizer=KFAC(model,1e-3)
         do_preoptim=True
-    else:
-        assert False,f'{args.preoptim} is not allowed. Set correctly.'
 
     # optmizer = torch.optim.Adam(model.parameters())
     size = (args.size, args.size)
