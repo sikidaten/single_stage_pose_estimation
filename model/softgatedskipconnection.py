@@ -18,14 +18,14 @@ class SoftGatedSkipConnection(nn.Module):
             x=self.bases[s](x)
             out=self.out[s](x)
             center,kps=torch.split(out, [1, self.out_ch - 1], 1)
-            ret+=[torch.sigmoid(center),torch.tanh(kps)]
+            ret+=[(torch.sigmoid(center),torch.tanh(kps))]
         return ret
 
 if __name__=='__main__':
     from torchviz import make_dot
     model=SoftGatedSkipConnection(stack=4,feature=256,num_ch=3,num_key=12)
     optim=torch.optim.Adam(model.parameters())
-    input=torch.randn(1,3,128,128)
+    input=torch.randn(2,3,128,128)
     output=model(input)
     dot=make_dot(output[0][0],params=dict(model.named_parameters()))
     dot.format='png'

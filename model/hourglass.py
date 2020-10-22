@@ -171,7 +171,8 @@ class HourglassNet(nn.Module):
             y = self.res[i](y)
             y = self.fc[i](y)
             score = self.score[i](y)
-            out.append(torch.split(score,[1,self.num_classes-1],1))
+            center,kps=torch.split(score, [1, self.num_classes - 1], 1)
+            out+=[(torch.sigmoid(center),torch.tanh(kps))]
             if i < self.num_stacks-1:
                 fc_ = self.fc_[i](y)
                 score_ = self.score_[i](score)
