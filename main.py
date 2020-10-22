@@ -11,7 +11,6 @@ from utils.dataset import COCODataset
 from utils.decoder import decoder
 from utils.eval import cocoevaluate
 from utils.utils import makeresultimg
-from utils.radam import RAdam
 from utils.kfac import KFAC
 
 
