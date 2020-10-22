@@ -83,14 +83,14 @@ if __name__ == '__main__':
     parser.add_argument('--aug',default=False,action='store_true')
     parser.add_argument('--beta',default=0.01,type=float)
     parser.add_argument('--tau',default=7,type=int)
-    parser.add_argument('--optim',default='radam')
+    parser.add_argument('--optim',default='adam')
     parser.add_argument('--preoptim',default=None)
     parser.add_argument('--model',default='sgsc')
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    device='cpu'
+    # device='cpu'
     in_ch=3 if not args.grey else 1
     if args.model=='sgsc':
         model = SoftGatedSkipConnection(args.stack, args.features, in_ch, 12).to(device)
