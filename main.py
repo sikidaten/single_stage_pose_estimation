@@ -100,8 +100,8 @@ if __name__ == '__main__':
     batchsize = args.batchsize
     do_schedule=False
     do_preoptim=False
-    if args.optim=='radam':
-        optimizer=RAdam(model.parameters())
+    if args.optim=='adam':
+        optimizer=torch.optim.Adam(model.parameters())
     elif args.optim=='rmsprop':
         do_schedule=True
         optimizer=torch.optim.RMSprop(model.parameters(),lr=0.003)
