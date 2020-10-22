@@ -17,7 +17,8 @@ class SoftGatedSkipConnection(nn.Module):
         for s in range(self.stack):
             x=self.bases[s](x)
             out=self.out[s](x)
-            ret+=[torch.split(out, [1, self.out_ch - 1], 1)]
+            center,kps=torch.split(out, [1, self.out_ch - 1], 1)
+            ret+=[torch.sigmoid(center),torch.tanh(kps)]
         return ret
 
 if __name__=='__main__':

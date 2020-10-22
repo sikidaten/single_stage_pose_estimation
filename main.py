@@ -37,8 +37,8 @@ def operate(phase):
             center_offset_losses=0
             for outcenter, outkps in output:
                 # sigmoid here
-                center_loss = F.mse_loss(center_map * center_mask, torch.sigmoid(outcenter) * center_mask,reduction='sum')
-                center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, torch.tanh(outkps) * kps_weight,reduction='sum')
+                center_loss = F.mse_loss(center_map * center_mask, outcenter * center_mask,reduction='sum')
+                center_offset_loss = F.smooth_l1_loss(kps_offset * kps_weight, outkps * kps_weight,reduction='sum')
                 center_losses=center_losses+center_loss/(B*args.stack)
                 center_offset_losses=center_offset_losses+center_offset_loss/(B*args.stack)
             loss = (args.beta*center_offset_losses+center_losses)
@@ -58,7 +58,7 @@ def operate(phase):
                 results = decoder(4, 4, size[0]//4, size[1]//4, output[-1][0][b].detach().cpu(),
                                   output[-1][1][b].detach().cpu(), 12)
                 resultslist += [(int(img_id[b]), results)]
-                if idx == 0:
+                if idx == 0 and b==0:
                     gt_result=decoder(4,4,size[0]//4,size[1]//4,center_map.cpu()[b],kps_offset.cpu()[b],12)
                     resultimg = makeresultimg(T.ToPILImage()((img[b] + 0.5).detach().cpu()).convert("RGB"), gt_result)
                     resultimg.save(f'{savefolder}/{e}_{b}_{phase}_gt.png')
