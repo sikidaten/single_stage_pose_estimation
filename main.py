@@ -4,8 +4,8 @@ import os
 import torch.nn.functional as F
 import torchvision.transforms as T
 from multiprocessing import cpu_count
-from model.softgatedskipconnection import SoftGatedSkipConnection as Model
-# from model.hourglass import HourglassNet as Model
+from model.softgatedskipconnection import SoftGatedSkipConnection
+from model.hourglass import HourglassNet
 from utils.core import *
 from utils.dataset import COCODataset
 from utils.decoder import decoder
@@ -85,14 +85,17 @@ if __name__ == '__main__':
     parser.add_argument('--tau',default=7,type=int)
     parser.add_argument('--optim',default='radam')
     parser.add_argument('--preoptim',default=None)
+    parser.add_argument('--model',default='sgsc')
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    # device='cpu'
+    device='cpu'
     in_ch=3 if not args.grey else 1
-    model = Model(args.stack, args.features, in_ch, 12).to(device)
-    # model=Model(num_stacks=8,num_classes=12*2+1).to(device)
+    if args.model=='sgsc':
+        model = SoftGatedSkipConnection(args.stack, args.features, in_ch, 12).to(device)
+    elif args.model=='hourglass':
+        model=HourglassNet(num_stacks=8,num_classes=12*2+1).to(device)
     # model.load_state_dict(torch.load('data/tmp/model.pth'))
     batchsize = args.batchsize
     do_schedule=False
