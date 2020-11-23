@@ -33,6 +33,7 @@ def operate(phase):
 
             output = model(img)
             center_losses=0
+            subloss=0
             center_offset_losses=0
             for outcenter, outkps in output:
                 # sigmoid here
@@ -41,17 +42,20 @@ def operate(phase):
                 center_losses=center_losses+center_loss/(B*args.stack)
                 center_offset_losses=center_offset_losses+center_offset_loss/(B*args.stack)
             loss = (args.beta*center_offset_losses+center_losses)
-            print(f'{e:3d}, {idx:3d}/{len(loader)}, {loss.item()/args.stack:3.6f}, {phase}')
             addvalue(writer, f'loss:{phase}', loss.item(), e)
             addvalue(writer, f'centerloss:{phase}', center_losses.item(), e)
             addvalue(writer, f'kpsloss:{phase}', center_offset_losses.item(), e)
 
             if phase == 'train':
-                loss.backward()
-                optimizer.step()
-                if do_preoptim:preoptimizer.step()
-                optimizer.zero_grad()
-                if idx==0 and do_schedule:scheduler.step()
+                (loss/args.subdivision).backward()
+                subloss+=loss.item()/args.subdivision
+                if idx%args.subdivision==0:
+                    print(f'{e:3d}, {idx:3d}/{len(loader)}, {subloss/args.stack:3.6f}, {phase}')
+                    optimizer.step()
+                    if do_preoptim:preoptimizer.step()
+                    optimizer.zero_grad()
+                    subloss=0
+                    if idx==0 and do_schedule:scheduler.step()
 
             for b in range(B):
                 results = decoder(4, 4, size[0]//4, size[1]//4, output[-1][0][b].detach().cpu(),
@@ -86,6 +90,7 @@ if __name__ == '__main__':
     parser.add_argument('--optim',default='adam')
     parser.add_argument('--preoptim',default=None)
     parser.add_argument('--model',default='sgsc')
+    parser.add_argument('--subdivision',default=1,type=int)
     args = parser.parse_args()
     savefolder = f'data/{args.savefolder}'
     os.makedirs(f'{savefolder}', exist_ok=True)
